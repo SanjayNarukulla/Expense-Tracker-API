@@ -1,10 +1,10 @@
-// server.js
 require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-const { connectToDatabase } = require("./db");
+const bcrypt = require("bcrypt"); // Import bcrypt for password hashing
+const { connectToDatabase, getDb } = require("./db"); // Import getDb
 const { createUser, findUserByUsername } = require("./user");
 
 const app = express();
@@ -94,7 +94,7 @@ app.get("/transactions", authenticateJWT, async (req, res) => {
   }
 });
 
-// Example route for transaction summaries (add your logic)
+// Example route for transaction summaries
 app.get("/summary", authenticateJWT, async (req, res) => {
   const db = getDb();
   try {
@@ -115,8 +115,19 @@ app.get("/summary", authenticateJWT, async (req, res) => {
   }
 });
 
+// Start the server after connecting to the database
 const PORT = process.env.PORT || 3000;
-connectToDatabase(); // Connect to MongoDB before starting the server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+
+const startServer = async () => {
+  try {
+    await connectToDatabase(); // Connect to MongoDB before starting the server
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Error starting the server:", error);
+    process.exit(1); // Exit the process if the database connection fails
+  }
+};
+
+startServer();
