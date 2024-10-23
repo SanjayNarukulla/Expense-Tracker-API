@@ -1,17 +1,22 @@
 // user.js
-const db = require("./db"); // Assuming you have a db.js for SQLite setup
+const { getDb } = require("./db");
 const bcrypt = require("bcryptjs");
 
 const createUser = async (username, password) => {
+  const db = getDb();
   const hashedPassword = await bcrypt.hash(password, 10);
-  await db.run("INSERT INTO users (username, password) VALUES (?, ?)", [
+
+  const result = await db.collection("users").insertOne({
     username,
-    hashedPassword,
-  ]);
+    password: hashedPassword,
+  });
+
+  return result.insertedId;
 };
 
 const findUserByUsername = async (username) => {
-  return await db.get("SELECT * FROM users WHERE username = ?", [username]);
+  const db = getDb();
+  return await db.collection("users").findOne({ username });
 };
 
 module.exports = {
